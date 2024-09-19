@@ -22,5 +22,4 @@ public enum PasswordType {
     public Password restore(final String password){
         return restoreFn.apply(password);
     }
-
 }
