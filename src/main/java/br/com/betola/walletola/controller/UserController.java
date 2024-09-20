@@ -1,8 +1,9 @@
 package br.com.betola.walletola.controller;
 
 import br.com.betola.walletola.domain.User;
-import br.com.betola.walletola.domain.request.UserRequest;
-import br.com.betola.walletola.service.UserService;
+import br.com.betola.walletola.domain.request.CreateUserRequest;
+import br.com.betola.walletola.domain.request.RestoreUserRequest;
+import br.com.betola.walletola.usecases.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,13 +20,22 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<User> createCrud(@RequestBody UserRequest request) {
+    public ResponseEntity<String> create(@RequestBody CreateUserRequest request) {
         try {
             User user = userService.create(request);
-            return new ResponseEntity<>(user, HttpStatus.CREATED);
+            return new ResponseEntity<>(user.id(), HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
+    @PostMapping("/restore")
+    public ResponseEntity<User> restore(@RequestBody RestoreUserRequest request) {
+        try {
+            User user = userService.restore(request);
+            return new ResponseEntity<>(user, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

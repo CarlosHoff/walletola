@@ -1,6 +1,7 @@
 package br.com.betola.walletola.domain;
 
 import com.google.common.io.BaseEncoding;
+import org.apache.log4j.Logger;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
@@ -11,7 +12,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
 import static java.lang.StringTemplate.STR;
-
 
 public record PBKDF2Password(String value, String salt) implements Password {
 
@@ -50,7 +50,7 @@ public record PBKDF2Password(String value, String salt) implements Password {
             byte[] hash = skf.generateSecret(spec).getEncoded();
             return Base64.getEncoder().encodeToString(hash);  // Base64
         } catch (Throwable t) {
-            t.printStackTrace();
+            Logger.getRootLogger();
             throw new RuntimeException(t);
         }
     }

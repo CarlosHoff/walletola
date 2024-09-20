@@ -30,6 +30,16 @@ class PasswordTypeTest {
     }
 
     @Test
+    public void generatePasswordPBDKF2(){
+
+        final var expectedPassword = PBKDF2Password.create("123456");
+
+        var actualPassword = PasswordType.PBDKF2.create("123456");
+
+        assertNotEquals(expectedPassword, actualPassword);
+    }
+
+    @Test
     public void testHash_Success() throws NoSuchAlgorithmException, InvalidKeySpecException {
         String plainPassword = "MySecretPassword";
         String salt = "randomSalt123";
