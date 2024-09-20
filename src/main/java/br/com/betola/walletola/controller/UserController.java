@@ -22,7 +22,8 @@ public class UserController {
     @PostMapping("/create")
     public ResponseEntity<CreateUserResponse> create(@RequestBody CreateUserRequest request) {
         try {
-            User user = userService.create(request);
+            CreateUserRequest newRequest = new CreateUserRequest(request.email(), request.password());
+            User user = userService.create(newRequest);
             CreateUserResponse response = new CreateUserResponse(user.id());
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
@@ -41,21 +42,21 @@ public class UserController {
         }
     }
 
-    @GetMapping("/findUserByID/{id}")
+    @GetMapping("/findUserByID")
     public ResponseEntity<UserResponse> getUserByID(@RequestParam String userID) {
         try {
             UserResponse user = userService.getUserByID(userID);
-            return new ResponseEntity<>(new UserResponse(user.id(), user.email(), user.password()), HttpStatus.CREATED);
+            return new ResponseEntity<>(new UserResponse(user.id(), user.email(), user.password()), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-    @GetMapping("/findUserByID/{id}")
+    @GetMapping("/findUserByEmail")
     public ResponseEntity<UserResponse> getUserByEmail(@RequestParam String email) {
         try {
             UserResponse user = userService.getUserByEmail(email);
-            return new ResponseEntity<>(new UserResponse(user.id(), user.email(), user.password()), HttpStatus.CREATED);
+            return new ResponseEntity<>(new UserResponse(user.id(), user.email(), user.password()), HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
