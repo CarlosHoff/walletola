@@ -25,7 +25,7 @@ public class UserController {
             CreateUserRequest newRequest = new CreateUserRequest(request.email(), request.password());
             User user = userService.create(newRequest);
             CreateUserResponse response = new CreateUserResponse(user.id());
-            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
