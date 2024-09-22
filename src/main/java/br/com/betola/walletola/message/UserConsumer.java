@@ -1,4 +1,4 @@
-package br.com.betola.walletola.usecases;
+package br.com.betola.walletola.message;
 
 import br.com.betola.walletola.domain.PasswordType;
 import br.com.betola.walletola.domain.User;
@@ -8,21 +8,23 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.stereotype.Component;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-public class UserListener {
+@Component
+public class UserConsumer {
+    private static final Logger LOG = LogManager.getLogger(UserConsumer.class);
 
     @KafkaListener(topics = "create-user")
     @Retryable(
             value = {JsonProcessingException.class, RuntimeException.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 300000)
-    )
+            backoff = @Backoff(delay = 300000))
     public void listen(String message) throws JsonProcessingException {
-        System.out.println(STR."Received message: \{message}");
-
+        LOG.info(STR."Received message: \{message}");
         ObjectMapper objectMapper = new ObjectMapper();
         User user = objectMapper.readValue(message, User.class);
-
 
         User.create(user.email(), PasswordType.PBDKF2, user.password().value());
     }
@@ -30,7 +32,8 @@ public class UserListener {
     @Recover
     public void recover(JsonProcessingException e, String message) {
         //TODO - CRIAR UMA DEAD-LETTER E ENVIAR PARA LÁ
-        System.out.println(STR."Message send to Dead-letter: \{message}");
+
+        LOG.info(STR."Message send to Dead-letter: \{message}");
     }
 
 }
