@@ -10,26 +10,38 @@ import br.com.betola.walletola.usecases.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/v1/user")
+@RequestMapping("users")
 public class UserController {
+
+    @Autowired
+    private
+    KafkaTemplate<String, String> kafkaTemplate;
 
     @Autowired
     private UserService userService;
 
     @PostMapping("/create")
-    public ResponseEntity<CreateUserResponse> create(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<CreateUserResponse> create(@RequestBody CreateUserRequest request,
+                                                     @RequestParam(name = "latency", defaultValue = "10", required = false) int latency) throws InterruptedException {
+        Thread.sleep(latency);
+        User user = null;
         try {
-            CreateUserRequest newRequest = new CreateUserRequest(request.email(), request.password());
-            User user = userService.create(newRequest);
+            user = userService.create(request);
             CreateUserResponse response = new CreateUserResponse(user.id());
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+            if (user != null) {
+                String json = user.toString();
+                kafkaTemplate.send("create-user", json);
+            }
         }
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
+
 
     @PostMapping("/restore")
     public ResponseEntity<RestoreUserResponse> restore(@RequestBody RestoreUserRequest request) {
