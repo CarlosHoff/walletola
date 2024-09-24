@@ -1,1 +1,0 @@
-mkdir ~/newrelic-infra && cd ~/newrelic-infra && echo "license_key: eu01xxca6e29d790320bbfa0d0239d5cFFFFNRAL" > newrelic-infra.yml

@@ -1,9 +1,14 @@
 package br.com.betola.walletola.message;
 
+import br.com.betola.walletola.domain.IdGenerator;
 import br.com.betola.walletola.domain.PasswordType;
 import br.com.betola.walletola.domain.User;
+import br.com.betola.walletola.domain.entity.UserEntity;
+import br.com.betola.walletola.domain.request.CreateUserRequest;
+import br.com.betola.walletola.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
@@ -16,17 +21,22 @@ import org.apache.logging.log4j.Logger;
 public class UserConsumer {
     private static final Logger LOG = LogManager.getLogger(UserConsumer.class);
 
-    @KafkaListener(topics = "create-user")
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @KafkaListener(topics = "create-user", groupId = "walletola-group-id")
     @Retryable(
             value = {JsonProcessingException.class, RuntimeException.class},
             maxAttempts = 3,
             backoff = @Backoff(delay = 300000))
     public void listen(String message) throws JsonProcessingException {
         LOG.info(STR."Received message: \{message}");
-        ObjectMapper objectMapper = new ObjectMapper();
-        User user = objectMapper.readValue(message, User.class);
-
-        User.create(user.email(), PasswordType.PBDKF2, user.password().value());
+        CreateUserRequest request = objectMapper.readValue(message, CreateUserRequest.class);
+        User userByMQ = User.create(request.email(), request.passwordType(), request.password());
+        userRepository.save(new UserEntity(userByMQ.id(), userByMQ.email(), userByMQ.password().value()));
     }
 
     @Recover

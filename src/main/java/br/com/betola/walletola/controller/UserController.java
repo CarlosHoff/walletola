@@ -8,6 +8,7 @@ import br.com.betola.walletola.domain.response.RestoreUserResponse;
 import br.com.betola.walletola.domain.response.UserResponse;
 import br.com.betola.walletola.message.UserProducer;
 import br.com.betola.walletola.usecases.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class UserController {
 
     @PostMapping("/create")
     public ResponseEntity<CreateUserResponse> create(@RequestBody CreateUserRequest request,
-                                                     @RequestParam(name = "latency", defaultValue = "10", required = false) int latency) throws InterruptedException {
+                                                     @RequestParam(name = "latency", defaultValue = "10", required = false) int latency) throws InterruptedException, JsonProcessingException {
         LOG.info("UserController - POST /create");
         Thread.sleep(latency);
         User user = null;
@@ -42,6 +43,11 @@ public class UserController {
         return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
+    @PostMapping("/create/mq")
+    public void createByMQ(@RequestBody CreateUserRequest request) throws JsonProcessingException {
+        LOG.info("UserController - POST /create/mq");
+        userProducer.sendMessageForKafka(request);
+    }
 
     @PostMapping("/restore")
     public ResponseEntity<RestoreUserResponse> restore(@RequestBody RestoreUserRequest request) {
